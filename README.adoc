@@ -36,16 +36,16 @@ prometheus.yaml
 include::code/prometheus.yaml[]
 ----
 
-cluster_role.yaml
+service_account.yaml
 [source, yaml, linenums, role='code-column']
 ----
-include::code/cluster_role.yaml[]
+include::code/service_account.yaml[]
 ----
 
-cluster_role_binding.yaml
+prometheus_rbac.yaml
 [source, yaml, linenums, role='code-column']
 ----
-include::code/cluster_role_binding.yaml[]
+include::code/prometheus_rbac.yaml[]
 ----
 
 prometheus_snippet.yaml
@@ -80,7 +80,7 @@ oc new-project <your-monitoring-namespace>
 
 . Click on Overview and create a service monitor instance. A ServiceMonitor defines a service endpoint that needs to be monitored by the Prometheus instance.
 
-. Inside the prometheus.yaml file, make sure *metadata.namespace* is <your-monitoring-namespace>. Labels should be configured to match your app deployment's label. For example, inside [hotspot file=0]`service_monitor.yaml` file, an application with label *app: myapp* from namespace **myapp** will be monitored by the service monitor. If the metrics endpoint is secured, you can define a secured endpoint with authentication configuration by following the https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint[endpoint] API documentation of Prometheus Operator.
+. Inside the Service Monitor YAML file, make sure *metadata.namespace* is <your-monitoring-namespace>. *spec.namespaceSelector* and *spec.Selector* for labels should be configured to match your app deployment's namespace and label. For example, inside [hotspot file=0]`service_monitor.yaml` file, an application with label *app: myapp_example* from namespace **myapp** will be monitored by the service monitor. If the metrics endpoint is secured, you can define a secured endpoint with authentication configuration by following the https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint[endpoint] API documentation of Prometheus Operator.
 +
 [role="code_command hotspot file=0", subs="quotes"]
 ----
@@ -90,7 +90,7 @@ Refer to the `service_monitor.yaml` file
 
 . Click on Overview and create a Prometheus instance. A Prometheus resource can scrape the targets defined in the ServiceMonitor resource.
 
-. Inside the YAML file, make sure *metadata.namespace* is <your-monitoring-namespace>. You can define the match expression to select which Service Monitors you are interested in under *spec.serviceMonitorSelector.matchExpressions* as in [hotspot file=1]`prometheus.yaml` file.
+. Inside the Prometheus YAML file, make sure *metadata.namespace* is <your-monitoring-namespace>. You can define the match expression to select which Service Monitors you are interested in under *spec.serviceMonitorSelector.matchExpressions* as in [hotspot file=1]`prometheus.yaml` file.
 +
 [role="code_command hotspot file=1", subs="quotes"]
 ----
@@ -118,24 +118,23 @@ prometheus-prometheus-1                3/3       Running   1          19h
 [root@rhel7-ocp]# oc logs prometheus-prometheus-0 -c prometheus -n prometheus-operator
 ----
 +
-If you are getting error logs such as below, it is because your service account doesn't have the permission to get the nodes or pods at the cluster scope.
+If you are getting error logs such as below, it is because your service account hasn't been created or doesn't have the permission to get the nodes or pods at the cluster scope.
 +
 [source,role="no_copy"]
 ----
 ...
-level=error ts=2019-12-13T16:03:29.346678841Z caller=klog.go:94 component=k8s_client_runtime func=ErrorDepth msg="/app/discovery/kubernetes/kubernetes.go:300: Failed to list *v1.Endpoints: endpoints is forbidden: User \"system:serviceaccount:prometheus-operator:prometheus-k8s\" cannot list resource \"endpoints\" in API group \"\" at the cluster scope"
+level=error ts=2019-12-13T16:03:29.346678841Z caller=klog.go:94 component=k8s_client_runtime func=ErrorDepth msg="/app/discovery/kubernetes/kubernetes.go:300: Failed to list *v1.Endpoints: endpoints is forbidden: User \"system:serviceaccount:prometheus-operator:prometheus\" cannot list resource \"pods\" in API group \"\" in the namespace \"myapp\""
 ----
-Then you should create Cluster role and Cluster role binding.
+Then you should create a Service Account with Cluster role and Cluster role binding.
 +
 [role="code_command hotspot file=2", subs="quotes"]
 ----
-Refer to `cluster_role.yaml` and `cluster_role_binding.yaml`
+Refer to `service_account.yaml`
 ----
 +
 [role="command"]
 ----
-oc apply -f cluster_role.yaml
-oc apply -f cluster_role_binding.yaml
+oc apply -f service_account.yaml
 ----
 +
 Check the logs again to check if the servers are running properly.
@@ -207,7 +206,8 @@ oc delete -f bundle.yaml
 oc apply -f bundle.yaml
 ----
 +
-The [hotspot file=0]`service_monitor.yaml` file defines a ServiceMonitor resource. A ServiceMonitor defines a service endpoint that needs to be monitored by the Prometheus instance. Take for example, an application with label **app: myapp** from namespace **myapp**, and metrics endpoints defined in **spec.endpoints** to be monitored by the Promtheus Operator. If the metrics endpoint is secured, you can define a secured endpoint with authentication configuration by following the https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint[endpoint] API documentation of Prometheus Operator.
+The [hotspot file=0]`service_monitor.yaml` file defines a ServiceMonitor resource. A ServiceMonitor defines a service endpoint that needs to be monitored by the Prometheus instance. Take for example, inside [hotspot file=0]`service_monitor.yaml` file, an application with label *app: myapp_example* from namespace **myapp** will be monitored by the service monitor. If the metrics endpoint is secured, you can define a secured endpoint with authentication configuration by following the https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint[endpoint] API documentation of Prometheus Operator.
+
 +
 [role="code_command hotspot file=0", subs="quotes"]
 ----
@@ -222,11 +222,11 @@ oc apply -f service_monitor.yaml
 ----
 +
 . Define a Prometheus resource that can scrape the targets defined in the ServiceMonitor resource. 
-Create a [hotspot file=1]`prometheus.yaml` file that aggregates all the files from the git repository directory `prometheus-operator/example/rbac/prometheus/`. NOTE: Make sure to change the `namespace: default` to `namespace: prometheus-operator`.
+Create a [hotspot file=3]`prometheus.yaml` file that aggregates all the files from the git repository directory `prometheus-operator/example/rbac/prometheus/`. Make sure *metadata.namespace* is <your-monitoring-namespace>. You can define the match expression to select which Service Monitors you are interested in under *spec.serviceMonitorSelector.matchExpressions* as in [hotspot file=3]`prometheus_rbac.yaml` file.
 +
-[role="code_command hotspot file=1", subs="quotes"]
+[role="code_command hotspot file=3", subs="quotes"]
 ----
-Create the `prometheus.yaml` file
+Create the `prometheus.yaml` file. Refer to `prometheus_rbac.yaml` file
 ----
 +
 . Apply the `prometheus.yaml` file to deploy the Prometheus service. After all the resources are created, apply the Prometheus Operator `bundle.yaml` file again.
@@ -266,19 +266,18 @@ If you are getting error logs such as below, it is because your service account 
 [source,role="no_copy"]
 ----
 ...
-level=error ts=2019-12-13T16:03:29.346678841Z caller=klog.go:94 component=k8s_client_runtime func=ErrorDepth msg="/app/discovery/kubernetes/kubernetes.go:300: Failed to list *v1.Endpoints: endpoints is forbidden: User \"system:serviceaccount:prometheus-operator:prometheus-k8s\" cannot list resource \"endpoints\" in API group \"\" at the cluster scope"
+level=error ts=2019-12-13T16:03:29.346678841Z caller=klog.go:94 component=k8s_client_runtime func=ErrorDepth msg="/app/discovery/kubernetes/kubernetes.go:300: Failed to list *v1.Endpoints: endpoints is forbidden: User \"system:serviceaccount:prometheus-operator:prometheus\" cannot list resource \"pods\" in API group \"\" in the namespace \"myapp\""
 ----
-Then you should create Cluster role and Cluster role binding.
+Then you should create a Service Account with Cluster role and Cluster role binding.
 +
 [role="code_command hotspot file=2", subs="quotes"]
 ----
-Refer to `cluster_role.yaml` and `cluster_role_binding.yaml`
+Refer to `service_account.yaml`
 ----
 +
 [role="command"]
 ----
-oc apply -f cluster_role.yaml
-oc apply -f cluster_role_binding.yaml
+oc apply -f service_account.yaml
 ----
 +
 Check the logs again to check if the servers are running properly.
@@ -295,7 +294,7 @@ prometheus   prometheus-prometheus-operator.apps.9.37.135.153.nip.io            
 +
 . Visit the *prometheus* route and go to the Prometheus *targets* page. 
 
-. If the page is empty with no endpoints, prometheus.yaml file will have to be updated. The ServiceMonitor needs to satisfy both *serviceMonitorNamespaceSelector* and *serviceMonitorSelector* fields before it can be picked up by the Prometheus service. Targets will not be picked up when the target namespace is not the same as prometheus' namespace and is missing the required label. For example, inside [hotspot file=1]`prometheus.yaml` file, only the target namespaces with the label *prometheus: monitoring* will be picked up. 
+. If the page is empty with no endpoints, prometheus.yaml file will have to be updated. The ServiceMonitor needs to satisfy both *serviceMonitorNamespaceSelector* and *serviceMonitorSelector* fields before it can be picked up by the Prometheus service. Targets will not be picked up when the target namespace is not the same as prometheus' namespace and is missing the required label. For example, inside [hotspot file=4]`prometheus_snippet.yaml` file, only the target namespaces with the label *prometheus: monitoring* will be picked up. 
 +
 [role="code_command hotspot file=4", subs="quotes"]
 ----

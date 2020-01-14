@@ -11,7 +11,7 @@ spec:
       - myapp
   selector:
     matchLabels:
-      app: myapp
+      app: myapp_example
   endpoints:
     - interval: 30s
       path: /metrics

@@ -1,2 +1,2 @@
-# draft-guide-app-monitoring-okd4.2
-App Monitoring Guide based on OKD 4.2
+# draft-guide-app-monitoring-ocp4.2
+App Monitoring Guide based on OCP 4.2
