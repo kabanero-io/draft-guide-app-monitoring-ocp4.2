@@ -42,7 +42,7 @@ Use these files while working through the guide:
 
 ### Install Prometheus Operator Using Operator Lifecycle Manager (OLM)
 
-The following procedure is based on https://medium.com/faun/using-the-operator-lifecycle-manager-to-deploy-prometheus-on-openshift-cd2f3abb3511[Using the Operator Lifecycle Manager to deploy Prometheus on OpenShift], with the added inclusion of OpenShift commands needed to complete each step.
+The following procedure is based on [Using the Operator Lifecycle Manager to deploy Prometheus on OpenShift](https://medium.com/faun/using-the-operator-lifecycle-manager-to-deploy-prometheus-on-openshift-cd2f3abb3511), with the added inclusion of OpenShift commands needed to complete each step.
 
 1. Create a new namespace for our Prometheus Operator deployment
 ```
@@ -53,7 +53,7 @@ oc new-project prometheus-operator
 
 1. Click on Overview and create a service monitor instance. A ServiceMonitor defines a service endpoint that needs to be monitored by the Prometheus instance.
 
-1. Inside the Service Monitor YAML file, make sure **metadata.namespace** is your monitoring namespace. In this case, it will be prometheus-operator. **spec.namespaceSelector** and **spec.selector** for labels should be configured to match your app deployment's namespace and label. For example, inside the `service_monitor.yaml` file, an application with label **app: example-app** from namespace **myapp** will be monitored by the service monitor. If the metrics endpoint is secured, you can define a secured endpoint with authentication configuration by following the https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint[endpoint] API documentation of Prometheus Operator.
+1. Inside the Service Monitor YAML file, make sure **metadata.namespace** is your monitoring namespace. In this case, it will be prometheus-operator. **spec.namespaceSelector** and **spec.selector** for labels should be configured to match your app deployment's namespace and label. For example, inside the `service_monitor.yaml` file, an application with label **app: example-app** from namespace **myapp** will be monitored by the service monitor. If the metrics endpoint is secured, you can define a secured endpoint with authentication configuration by following the [endpoint](https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#endpoint) API documentation of Prometheus Operator.
 
 1. Create a Service Account with Cluster role and Cluster role binding to ensure you have the permission to get nodes and pods in other namespaces at the cluster scope. Refer to the `service_account.yaml` file. Create the YAML file and apply it.
 ```
