@@ -20,11 +20,6 @@ Prior to deploying Prometheus, ensure that there is a running application that h
 
 It is assumed such a running application has been deployed to the RHOCP cluster inside a project/namespace called `myapp`, and that the Prometheus metrics endpoint is exposed on path `/metrics`.
 
-Git clone this repo to get going right away:
-```
-git clone https://github.com/Kabanero-io/guide-app-monitoring-ocp4.2.git
-```
-
 ## Deploy Prometheus - Prometheus Operator
 
 The Prometheus Operator is an open-source project originating from CoreOS and exists as a part of their Kubernetes Operator framework. The Kubernetes Operator framework is the preferred way to deploy Prometheus on a Kubernetes system. When the Prometheus Operator is installed on the Kubernetes system, you no longer need to hand-configure the Prometheus configuration. Instead, you create CoreOS ServiceMonitor resources for each of the service endpoints that needs to be monitored: this makes daily maintenance of the Prometheus server a lot easier. An architecture overview of the Prometheus Operator is shown below:
